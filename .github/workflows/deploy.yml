@@ -2,9 +2,7 @@ name: Deploy website to GitHub Pages
 on:
   push:
     branches: [main]
-    paths:
-      - 'index.html'
-      - 'assets/**'
+    paths: ['index.html', 'assets/**', '.github/workflows/deploy.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,12 +19,16 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Prepare public website files
+      - name: Build website from compressed source
         run: |
-          test -s index.html
           mkdir -p _site
-          cp index.html _site/index.html
-          if [ -d assets ]; then cp -R assets _site/assets; fi
+          python3 - <<'PY'
+          import base64, hashlib, lzma
+          from pathlib import Path
+          data = lzma.decompress(base64.b64decode(Path('assets/index.html.xz.b64').read_text()))
+          assert hashlib.sha256(data).hexdigest() == 'ff84ab515441ea0c129c1558a7bdf4674d6911bf9c3a37434d9b500a1222f626'
+          Path('_site/index.html').write_bytes(data)
+          PY
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
         with:
