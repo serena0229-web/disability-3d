@@ -29,6 +29,7 @@ jobs:
           assert hashlib.sha256(data).hexdigest() == 'ff84ab515441ea0c129c1558a7bdf4674d6911bf9c3a37434d9b500a1222f626'
           Path('_site/index.html').write_bytes(data)
           PY
+          python3 assets/redesign.py
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
         with:
